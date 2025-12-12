@@ -123,8 +123,8 @@ const Index = () => {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <Icon name="Play" size={24} className="text-white" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-              GemeKapa
+            <h1 className="text-2xl font-bold text-primary">
+              CinemaGoku
             </h1>
           </div>
           <nav className="hidden md:flex items-center gap-6">
