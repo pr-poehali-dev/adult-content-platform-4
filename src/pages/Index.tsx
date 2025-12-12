@@ -33,6 +33,26 @@ const Index = () => {
   const [selectedContent, setSelectedContent] = useState<Content | null>(null);
   const [userRating, setUserRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
+  const [profileAvatar, setProfileAvatar] = useState('');
+  const [profileBanner, setProfileBanner] = useState('https://cdn.poehali.dev/projects/59f3fdc1-7a70-47a9-bcfe-9f9c881e11b4/files/f03f9437-1336-49f1-be37-844de656b3b6.jpg');
+  const [profileName, setProfileName] = useState('Дмитрий Иванов');
+  const [profileBio, setProfileBio] = useState('Любитель кино и сериалов 🎬');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [friends, setFriends] = useState([
+    { id: '1', name: 'Анна К.', avatar: '', online: true },
+    { id: '2', name: 'Михаил П.', avatar: '', online: false },
+    { id: '3', name: 'Елена С.', avatar: '', online: true }
+  ]);
+  const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
+  const [messages, setMessages] = useState<{[key: string]: Array<{text: string, from: 'me' | 'friend', time: string}>}>({
+    '1': [
+      { text: 'Привет! Смотрел новый фильм?', from: 'friend', time: '14:32' },
+      { text: 'Да, вчера посмотрел! Очень понравился', from: 'me', time: '14:35' }
+    ],
+    '2': [],
+    '3': []
+  });
+  const [messageInput, setMessageInput] = useState('');
 
   const content: Content[] = [
     {
@@ -360,7 +380,167 @@ const Index = () => {
           </>
         )}
 
-        {activeTab !== 'home' && (
+        {activeTab === 'profile' && (
+          <div className="max-w-4xl mx-auto">
+            <Card className="overflow-hidden mb-6">
+              <div className="relative h-48 group cursor-pointer">
+                <img
+                  src={profileBanner}
+                  alt="Banner"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="gap-2"
+                    onClick={() => {
+                      const url = prompt('Введите URL изображения для фона:');
+                      if (url) setProfileBanner(url);
+                    }}
+                  >
+                    <Icon name="Camera" size={16} />
+                    Изменить фон
+                  </Button>
+                </div>
+              </div>
+              <CardContent className="relative pt-16 pb-6">
+                <div className="absolute -top-16 left-6">
+                  <div className="relative group cursor-pointer">
+                    <Avatar className="w-32 h-32 border-4 border-background">
+                      <AvatarImage src={profileAvatar} />
+                      <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
+                        {profileName.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="gap-2 rounded-full"
+                        onClick={() => {
+                          const url = prompt('Введите URL изображения для аватара:');
+                          if (url) setProfileAvatar(url);
+                        }}
+                      >
+                        <Icon name="Camera" size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="ml-44 flex items-start justify-between">
+                  <div>
+                    {isEditingProfile ? (
+                      <div className="space-y-3 max-w-md">
+                        <input
+                          type="text"
+                          value={profileName}
+                          onChange={(e) => setProfileName(e.target.value)}
+                          className="w-full px-3 py-2 bg-muted rounded-lg text-lg font-semibold"
+                        />
+                        <Textarea
+                          value={profileBio}
+                          onChange={(e) => setProfileBio(e.target.value)}
+                          className="w-full"
+                          rows={2}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <h2 className="text-3xl font-bold mb-1">{profileName}</h2>
+                        <p className="text-muted-foreground mb-4">{profileBio}</p>
+                      </>
+                    )}
+                    <div className="flex gap-6 text-sm">
+                      <div>
+                        <span className="font-semibold text-foreground">42</span>
+                        <span className="text-muted-foreground ml-1">Просмотрено</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground">{friends.length}</span>
+                        <span className="text-muted-foreground ml-1">Друзей</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-foreground">15</span>
+                        <span className="text-muted-foreground ml-1">Рецензий</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => setIsEditingProfile(!isEditingProfile)}
+                    variant={isEditingProfile ? "default" : "outline"}
+                    className="gap-2"
+                  >
+                    <Icon name={isEditingProfile ? "Check" : "Pencil"} size={16} />
+                    {isEditingProfile ? 'Сохранить' : 'Редактировать'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-semibold">Друзья</h3>
+                    <Button size="sm" variant="ghost" className="gap-2">
+                      <Icon name="UserPlus" size={16} />
+                      Добавить
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {friends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer transition-colors"
+                        onClick={() => setSelectedFriend(friend.id)}
+                      >
+                        <div className="relative">
+                          <Avatar>
+                            <AvatarImage src={friend.avatar} />
+                            <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                          </Avatar>
+                          {friend.online && (
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold">{friend.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {friend.online ? 'В сети' : 'Не в сети'}
+                          </p>
+                        </div>
+                        <Icon name="MessageCircle" size={18} className="text-muted-foreground" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-semibold mb-4">Избранное</h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {content.slice(0, 6).map((item) => (
+                      <div
+                        key={item.id}
+                        className="aspect-[2/3] rounded-lg overflow-hidden hover-scale cursor-pointer"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {activeTab !== 'home' && activeTab !== 'profile' && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
               <Icon
@@ -393,6 +573,107 @@ const Index = () => {
           ))}
         </div>
       </nav>
+
+      {selectedFriend && (
+        <Dialog open={!!selectedFriend} onOpenChange={() => setSelectedFriend(null)}>
+          <DialogContent className="max-w-2xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={friends.find(f => f.id === selectedFriend)?.avatar} />
+                  <AvatarFallback>{friends.find(f => f.id === selectedFriend)?.name[0]}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p>{friends.find(f => f.id === selectedFriend)?.name}</p>
+                  <p className="text-sm text-muted-foreground font-normal">
+                    {friends.find(f => f.id === selectedFriend)?.online ? 'В сети' : 'Не в сети'}
+                  </p>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col h-[500px]">
+              <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-muted/20 rounded-lg mb-4">
+                {(messages[selectedFriend] || []).length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <div className="text-center">
+                      <Icon name="MessageCircle" size={48} className="mx-auto mb-2 opacity-50" />
+                      <p>Начните общение</p>
+                    </div>
+                  </div>
+                ) : (
+                  messages[selectedFriend].map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex ${msg.from === 'me' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                          msg.from === 'me'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
+                        }`}
+                      >
+                        <p className="text-sm">{msg.text}</p>
+                        <p className={`text-xs mt-1 ${
+                          msg.from === 'me' ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                        }`}>
+                          {msg.time}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Textarea
+                  placeholder="Напишите сообщение..."
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  className="resize-none"
+                  rows={2}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (messageInput.trim() && selectedFriend) {
+                        const newMessage = {
+                          text: messageInput,
+                          from: 'me' as const,
+                          time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                        };
+                        setMessages({
+                          ...messages,
+                          [selectedFriend]: [...(messages[selectedFriend] || []), newMessage]
+                        });
+                        setMessageInput('');
+                      }
+                    }
+                  }}
+                />
+                <Button
+                  size="icon"
+                  onClick={() => {
+                    if (messageInput.trim() && selectedFriend) {
+                      const newMessage = {
+                        text: messageInput,
+                        from: 'me' as const,
+                        time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                      };
+                      setMessages({
+                        ...messages,
+                        [selectedFriend]: [...(messages[selectedFriend] || []), newMessage]
+                      });
+                      setMessageInput('');
+                    }
+                  }}
+                  disabled={!messageInput.trim()}
+                >
+                  <Icon name="Send" size={18} />
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
